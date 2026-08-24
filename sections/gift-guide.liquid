@@ -1,0 +1,152 @@
+{% liquid
+  assign selected_blocks = section.blocks | where: 'type', 'product'
+%}
+
+<section class="gift-guide-shopify" data-section-id="{{ section.id }}">
+  <header class="gift-guide-shopify__header">
+    <button class="gift-guide-shopify__menu" type="button" aria-label="Open menu"><span></span><span></span><span></span></button>
+    <div class="gift-guide-shopify__brand">{{ section.settings.brand_name }}</div>
+    <p>{{ section.settings.header_text }}</p>
+    <a class="gift-guide-shopify__cta" href="{{ routes.cart_url }}">{{ section.settings.header_button }} <span>-></span></a>
+  </header>
+
+  <div class="gift-guide-shopify__hero">
+    <div class="gift-guide-shopify__hero-art">
+      {% if section.settings.hero_image != blank %}
+        {{ section.settings.hero_image | image_url: width: 1400 | image_tag: loading: 'eager', alt: section.settings.hero_image.alt | default: section.settings.heading }}
+      {% else %}
+        <div class="gift-guide-shopify__art-placeholder" aria-hidden="true">{{ section.settings.brand_name }}</div>
+      {% endif %}
+    </div>
+    <div class="gift-guide-shopify__hero-copy">
+      <h1>{{ section.settings.heading }}</h1>
+      <div>{{ section.settings.description }}</div>
+      <a class="gift-guide-shopify__button" href="#gift-guide-products-{{ section.id }}">{{ section.settings.hero_button }} <span>-></span></a>
+    </div>
+  </div>
+
+  <div class="gift-guide-shopify__products" id="gift-guide-products-{{ section.id }}">
+    <h2>{{ section.settings.products_heading }}</h2>
+    <div class="gift-guide-shopify__grid">
+      {% for block in selected_blocks %}
+        {% assign product = block.settings.product %}
+        {% if product != blank %}
+          <article class="gift-guide-shopify__card" {{ block.shopify_attributes }} data-product-json="{{ product | json | escape }}" data-auto-product-json="{{ section.settings.auto_add_product | json | escape }}">
+            {% if product.featured_image != blank %}
+              {{ product.featured_image | image_url: width: 900 | image_tag: loading: 'lazy', alt: product.title }}
+            {% else %}
+              {{ 'product-1' | placeholder_svg_tag: 'gift-guide-shopify__placeholder' }}
+            {% endif %}
+            <button class="gift-guide-shopify__plus" type="button" aria-label="View {{ product.title }}">+</button>
+            <div class="gift-guide-shopify__card-info"><h3>{{ product.title }}</h3><p>{{ product.price | money }}</p></div>
+          </article>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="gift-guide-shopify__modal" data-modal aria-hidden="true">
+    <button class="gift-guide-shopify__modal-backdrop" type="button" data-close-modal aria-label="Close product dialog"></button>
+    <div class="gift-guide-shopify__modal-panel" role="dialog" aria-modal="true" aria-labelledby="gift-guide-modal-title-{{ section.id }}">
+      <button class="gift-guide-shopify__close" type="button" data-close-modal aria-label="Close product dialog">x</button>
+      <div class="gift-guide-shopify__modal-image"><img data-modal-image alt=""></div>
+      <div class="gift-guide-shopify__modal-content">
+        <h2 id="gift-guide-modal-title-{{ section.id }}" data-modal-title></h2>
+        <p class="gift-guide-shopify__modal-price" data-modal-price></p>
+        <div class="gift-guide-shopify__modal-description" data-modal-description></div>
+        <label data-color-label>Color<select data-color-select></select></label>
+        <label data-size-label>Size<select data-size-select></select></label>
+        <button class="gift-guide-shopify__button gift-guide-shopify__add" type="button" data-add-to-cart>{{ section.settings.add_button }} <span>-></span></button>
+        <p class="gift-guide-shopify__status" data-status role="status"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .gift-guide-shopify{--ink:#111;--paper:#efefeb;--yellow:#e8d55d;background:var(--paper);color:var(--ink);max-width:1250px;margin:0 auto;padding:18px; font-family:var(--font-body-family,sans-serif)}
+  .gift-guide-shopify *{box-sizing:border-box}.gift-guide-shopify__header{display:grid;grid-template-columns:58px 1fr auto auto;align-items:center;gap:18px;min-height:68px;border-bottom:1px solid #1113}.gift-guide-shopify__menu{border:0;background:none;display:grid;gap:4px;width:42px;padding:8px;cursor:pointer}.gift-guide-shopify__menu span{height:2px;background:var(--ink);display:block}.gift-guide-shopify__brand,.gift-guide-shopify h1,.gift-guide-shopify h2{font-family:var(--font-heading-family,serif)}.gift-guide-shopify__brand{font-size:clamp(1.3rem,1.8vw,2.75rem);font-weight:700;text-align:center}.gift-guide-shopify__header p{font-size:.82rem;margin:0}.gift-guide-shopify__cta{background:var(--yellow);color:var(--ink);padding:11px 18px;text-decoration:none;font-size:.72rem;font-weight:700;letter-spacing:.08em}.gift-guide-shopify__hero{display:grid;grid-template-columns:1.6fr .9fr;gap:28px;align-items:end;padding-top:20px}.gift-guide-shopify__hero-art{min-height:430px;display:grid;place-items:center;overflow:hidden}.gift-guide-shopify__hero-art img{width:100%;height:100%;object-fit:contain}.gift-guide-shopify__art-placeholder{font-family:var(--font-heading-family,serif);font-size:clamp(2rem,7vw,7rem);font-weight:700;opacity:.12;text-align:center}.gift-guide-shopify__hero-copy{padding:0 0 22px 8px}.gift-guide-shopify h1{font-size:clamp(2.7rem,4vw,5rem);line-height:.9;letter-spacing:-.06em;margin:0}.gift-guide-shopify__hero-copy>div{max-width:430px;margin:18px 0 28px;line-height:1.5}.gift-guide-shopify__button{display:inline-flex;align-items:center;justify-content:center;gap:18px;background:var(--ink);color:#fff;border:0;padding:16px 20px;text-decoration:none;font-size:.8rem;font-weight:700;letter-spacing:.08em;cursor:pointer}.gift-guide-shopify__button span{font-size:1.4rem}.gift-guide-shopify__products{padding-top:48px}.gift-guide-shopify h2{font-size:clamp(2rem,2.2vw,2.9rem);letter-spacing:-.05em;margin:0 0 26px}.gift-guide-shopify__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.gift-guide-shopify__card{position:relative;min-height:290px;border:1px solid #1113;overflow:hidden;cursor:pointer}.gift-guide-shopify__card>img,.gift-guide-shopify__card>svg{width:100%;height:290px;object-fit:cover}.gift-guide-shopify__plus{position:absolute;top:14px;right:14px;width:28px;height:28px;border:1px solid var(--ink);border-radius:50%;background:#fffc;font-size:1.35rem;line-height:1;cursor:pointer}.gift-guide-shopify__card-info{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;background:#f5f3ee}.gift-guide-shopify__card-info h3,.gift-guide-shopify__card-info p{margin:0;font-size:.9rem}.gift-guide-shopify__modal{position:fixed;inset:0;display:grid;place-items:end center;opacity:0;visibility:hidden;pointer-events:none;z-index:30}.gift-guide-shopify__modal.is-open{opacity:1;visibility:visible;pointer-events:auto}.gift-guide-shopify__modal-backdrop{position:absolute;inset:0;border:0;background:#1112}.gift-guide-shopify__modal-panel{position:relative;width:min(620px,calc(100vw - 28px));display:grid;grid-template-columns:200px 1fr;gap:18px;background:#f8f6f0;border:3px solid var(--ink);border-bottom:0;padding:18px 16px 0;z-index:1}.gift-guide-shopify__close{position:absolute;top:10px;right:10px;border:0;background:none;font-size:1.8rem;cursor:pointer}.gift-guide-shopify__modal-image{min-height:180px;margin-top:32px;border:2px solid var(--ink);overflow:hidden}.gift-guide-shopify__modal-image img{width:100%;height:100%;object-fit:cover}.gift-guide-shopify__modal-content{padding:26px 8px 18px 0}.gift-guide-shopify__modal-content h2{margin:0;font-size:2rem}.gift-guide-shopify__modal-price{font-weight:700}.gift-guide-shopify__modal-description{font-size:.9rem;line-height:1.5;margin:14px 0}.gift-guide-shopify__modal-content label{display:block;font-size:.8rem;margin-top:12px}.gift-guide-shopify__modal-content select{display:block;width:100%;margin-top:7px;padding:12px;background:#f7f3ed;border:2px solid #111}.gift-guide-shopify__add{width:100%;margin-top:20px}.gift-guide-shopify__status{font-size:.8rem}.gift-guide-shopify__status:empty{display:none}
+  @media(max-width:900px){.gift-guide-shopify__header{grid-template-columns:50px 1fr auto}.gift-guide-shopify__header p{display:none}.gift-guide-shopify__hero{grid-template-columns:1fr}.gift-guide-shopify__hero-copy{padding-left:0}.gift-guide-shopify__grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.gift-guide-shopify{padding:10px 12px 40px}.gift-guide-shopify__header{grid-template-columns:42px 1fr auto;gap:10px}.gift-guide-shopify__brand{font-size:1.1rem}.gift-guide-shopify__cta{padding:9px 10px;font-size:.6rem}.gift-guide-shopify__hero-art{min-height:260px}.gift-guide-shopify__grid{grid-template-columns:1fr}.gift-guide-shopify__modal-panel{grid-template-columns:1fr;padding-bottom:10px}.gift-guide-shopify__modal-image{margin-top:32px}}
+</style>
+
+<script>
+  (() => {
+    const root = document.querySelector('[data-section-id="{{ section.id }}"]');
+    if (!root || root.dataset.initialized) return;
+    root.dataset.initialized = 'true';
+    const modal = root.querySelector('[data-modal]');
+    const image = root.querySelector('[data-modal-image]');
+    const title = root.querySelector('[data-modal-title]');
+    const price = root.querySelector('[data-modal-price]');
+    const description = root.querySelector('[data-modal-description]');
+    const colorSelect = root.querySelector('[data-color-select]');
+    const sizeSelect = root.querySelector('[data-size-select]');
+    const status = root.querySelector('[data-status]');
+    let product;
+    let autoProduct;
+
+    const money = (value) => Shopify.formatMoney ? Shopify.formatMoney(value) : (value / 100).toFixed(2);
+    const variants = () => product.variants || [];
+    const optionValues = (index) => [...new Set(variants().map((variant) => variant.options[index]).filter(Boolean))];
+    const renderSelect = (select, values) => { select.innerHTML = values.map((value) => `<option value="${value.replaceAll('"', '&quot;')}">${value}</option>`).join(''); select.closest('label').hidden = values.length === 0; };
+    const selectedVariant = () => variants().find((variant) => (!colorSelect.value || variant.options.includes(colorSelect.value)) && (!sizeSelect.value || variant.options.includes(sizeSelect.value))) || variants()[0];
+
+    function open(card) {
+      product = JSON.parse(card.dataset.productJson);
+      autoProduct = card.dataset.autoProductJson ? JSON.parse(card.dataset.autoProductJson) : null;
+      title.textContent = product.title;
+      price.textContent = money(product.price);
+      description.textContent = product.description || '';
+      image.src = product.featured_image || '';
+      image.alt = product.title;
+      renderSelect(colorSelect, optionValues(0));
+      renderSelect(sizeSelect, optionValues(1));
+      modal.classList.add('is-open');
+      modal.setAttribute('aria-hidden', 'false');
+    }
+    function close() { modal.classList.remove('is-open'); modal.setAttribute('aria-hidden', 'true'); }
+    async function addToCart() {
+      const variant = selectedVariant();
+      if (!variant) return;
+      const items = [{ id: variant.id, quantity: 1 }];
+      const autoVariant = autoProduct && (autoProduct.variants || []).find((item) => item.options.includes('Black') && (item.options.includes('Medium') || item.options.includes('M')));
+      if (colorSelect.value.toLowerCase() === 'black' && ['medium', 'm'].includes(sizeSelect.value.toLowerCase()) && autoVariant) items.push({ id: autoVariant.id, quantity: 1 });
+      status.textContent = 'Adding to cart...';
+      try {
+        const response = await fetch(`${window.Shopify.routes.root}cart/add.js`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items }) });
+        if (!response.ok) throw new Error('Cart request failed');
+        status.textContent = 'Added to cart';
+        document.dispatchEvent(new CustomEvent('cart:refresh'));
+        setTimeout(close, 500);
+      } catch (error) { status.textContent = 'Unable to add this product. Please try again.'; }
+    }
+    root.querySelectorAll('.gift-guide-shopify__card').forEach((card) => card.addEventListener('click', (event) => { if (!event.target.closest('.gift-guide-shopify__plus')) return; open(card); }));
+    root.querySelectorAll('[data-close-modal]').forEach((element) => element.addEventListener('click', close));
+    root.querySelector('[data-add-to-cart]').addEventListener('click', addToCart);
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && modal.classList.contains('is-open')) close(); });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Gift guide",
+  "tag": "section",
+  "class": "section-gift-guide",
+  "settings": [
+    { "type": "text", "id": "brand_name", "label": "Brand name", "default": "TISSO VISON" },
+    { "type": "text", "id": "header_text", "label": "Header text", "default": "Find the ideal gift for loved ones." },
+    { "type": "text", "id": "header_button", "label": "Header button", "default": "CHOOSE GIFT" },
+    { "type": "image_picker", "id": "hero_image", "label": "Hero illustration" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "The Gift Guide" },
+    { "type": "richtext", "id": "description", "label": "Description", "default": "<p>Discover joy: Your ultimate holiday gift destination.</p>" },
+    { "type": "text", "id": "hero_button", "label": "Hero button", "default": "SHOP NOW" },
+    { "type": "text", "id": "products_heading", "label": "Products heading", "default": "Tisso vison in the wild" },
+    { "type": "text", "id": "add_button", "label": "Add button", "default": "ADD TO CART" },
+    { "type": "product", "id": "auto_add_product", "label": "Black / Medium auto-add product" }
+  ],
+  "blocks": [
+    { "type": "product", "name": "Product", "limit": 6, "settings": [{ "type": "product", "id": "product", "label": "Product" }] }
+  ],
+  "presets": [{ "name": "Gift guide", "blocks": [{ "type": "product" }, { "type": "product" }, { "type": "product" }, { "type": "product" }, { "type": "product" }, { "type": "product" }] }]
+}
+{% endschema %}
