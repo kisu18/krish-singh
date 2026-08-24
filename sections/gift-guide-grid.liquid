@@ -4,7 +4,18 @@
     {% for block in section.blocks %}
       {% assign product = block.settings.product %}
       {% if product != blank %}
-        <article class="gift-grid__card" {{ block.shopify_attributes }} data-product-title="{{ product.title | escape }}" data-product-price="{{ product.price | money | escape }}" data-product-description="{{ product.description | strip_html | escape }}" data-product-image="{{ product.featured_image | image_url: width: 900 }}" data-product-variants="{{ product.variants | json | escape }}" data-auto-product="{{ section.settings.auto_add_product | json | escape }}">
+        {% assign auto_add_variant_id = blank %}
+        {% for auto_variant in section.settings.auto_add_product.variants %}
+          {% assign auto_option_1 = auto_variant.option1 | downcase | strip %}
+          {% assign auto_option_2 = auto_variant.option2 | downcase | strip %}
+          {% assign auto_option_3 = auto_variant.option3 | downcase | strip %}
+          {% assign has_black = false %}
+          {% assign has_medium = false %}
+          {% if auto_option_1 == 'black' or auto_option_2 == 'black' or auto_option_3 == 'black' %}{% assign has_black = true %}{% endif %}
+          {% if auto_option_1 == 'm' or auto_option_1 == 'medium' or auto_option_2 == 'm' or auto_option_2 == 'medium' or auto_option_3 == 'm' or auto_option_3 == 'medium' %}{% assign has_medium = true %}{% endif %}
+          {% if has_black and has_medium %}{% assign auto_add_variant_id = auto_variant.id %}{% break %}{% endif %}
+        {% endfor %}
+        <article class="gift-grid__card" {{ block.shopify_attributes }} data-product-title="{{ product.title | escape }}" data-product-price="{{ product.price | money | escape }}" data-product-description="{{ product.description | strip_html | escape }}" data-product-image="{{ product.featured_image | image_url: width: 900 }}" data-product-variants="{{ product.variants | json | escape }}" data-auto-variant-id="{{ auto_add_variant_id }}">
           {% if product.featured_image != blank %}
             {{ product.featured_image | image_url: width: 900 | image_tag: loading: 'lazy', alt: product.title }}
           {% else %}
@@ -54,15 +65,15 @@
     const status = root.querySelector('[data-status]');
     let card;
     let variants = [];
-    let autoProduct = null;
+    let autoVariantId = null;
     const values = (index) => [...new Set(variants.map((variant) => variant.options[index]).filter(Boolean))];
     const fill = (select, field, options) => { field.hidden = options.length === 0; select.innerHTML = options.map((option) => `<option>${option}</option>`).join(''); };
     const normalized = (value) => String(value || '').trim().toLowerCase();
     const hasOption = (variant, value) => (variant.options || []).some((option) => normalized(option) === normalized(value));
     const currentVariant = () => variants.find((variant) => (!colorSelect.value || hasOption(variant, colorSelect.value)) && (!sizeSelect.value || hasOption(variant, sizeSelect.value))) || variants[0];
-    function openProduct(nextCard) { card = nextCard; variants = JSON.parse(card.dataset.productVariants || '[]'); autoProduct = card.dataset.autoProduct ? JSON.parse(card.dataset.autoProduct) : null; title.textContent = card.dataset.productTitle; price.textContent = card.dataset.productPrice; description.textContent = card.dataset.productDescription; image.src = card.dataset.productImage; image.alt = card.dataset.productTitle; fill(colorSelect, root.querySelector('[data-color-field]'), values(0)); fill(sizeSelect, root.querySelector('[data-size-field]'), values(1)); modal.classList.add('is-open'); modal.setAttribute('aria-hidden', 'false'); }
+    function openProduct(nextCard) { card = nextCard; variants = JSON.parse(card.dataset.productVariants || '[]'); autoVariantId = card.dataset.autoVariantId || null; title.textContent = card.dataset.productTitle; price.textContent = card.dataset.productPrice; description.textContent = card.dataset.productDescription; image.src = card.dataset.productImage; image.alt = card.dataset.productTitle; fill(colorSelect, root.querySelector('[data-color-field]'), values(0)); fill(sizeSelect, root.querySelector('[data-size-field]'), values(1)); modal.classList.add('is-open'); modal.setAttribute('aria-hidden', 'false'); }
     function close() { modal.classList.remove('is-open'); modal.setAttribute('aria-hidden', 'true'); }
-    async function addToCart() { const selected = currentVariant(); if (!selected) return; const items = [{ id: selected.id, quantity: 1 }]; const qualifiesForAutoAdd = hasOption(selected, 'Black') && (hasOption(selected, 'Medium') || hasOption(selected, 'M')); const autoVariant = autoProduct && (autoProduct.variants || []).find((variant) => hasOption(variant, 'Black') && (hasOption(variant, 'Medium') || hasOption(variant, 'M'))); if (qualifiesForAutoAdd && autoVariant && autoVariant.id !== selected.id) items.push({ id: autoVariant.id, quantity: 1 }); status.textContent = 'Adding to cart...'; try { const response = await fetch(`${window.Shopify.routes.root}cart/add.js`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ items }) }); if (!response.ok) throw new Error('Cart request failed'); status.textContent = qualifiesForAutoAdd && !autoVariant ? 'Added, but select Soft Winter Jacket in section settings.' : 'Added to cart'; document.dispatchEvent(new CustomEvent('cart:refresh')); setTimeout(close, 900); } catch (error) { status.textContent = 'Unable to add this product. Please try again.'; } }
+    async function addToCart() { const selected = currentVariant(); if (!selected) return; const items = [{ id: selected.id, quantity: 1 }]; const qualifiesForAutoAdd = hasOption(selected, 'Black') && (hasOption(selected, 'Medium') || hasOption(selected, 'M')); if (qualifiesForAutoAdd && autoVariantId && autoVariantId !== String(selected.id)) items.push({ id: Number(autoVariantId), quantity: 1 }); status.textContent = 'Adding to cart...'; try { const response = await fetch(`${window.Shopify.routes.root}cart/add.js`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ items }) }); if (!response.ok) throw new Error('Cart request failed'); status.textContent = qualifiesForAutoAdd && !autoVariantId ? 'Added, but select a Black / M Soft Winter Jacket variant in section settings.' : 'Added to cart'; document.dispatchEvent(new CustomEvent('cart:refresh')); setTimeout(close, 900); } catch (error) { status.textContent = 'Unable to add this product. Please try again.'; } }
     root.querySelectorAll('.gift-grid__card').forEach((item) => item.addEventListener('click', (event) => { if (event.target.closest('.gift-grid__plus')) openProduct(item); }));
     root.querySelectorAll('[data-close-modal]').forEach((item) => item.addEventListener('click', close));
     root.querySelector('[data-add-to-cart]').addEventListener('click', addToCart);
