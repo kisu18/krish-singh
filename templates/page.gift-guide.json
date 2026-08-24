@@ -2,18 +2,7 @@
   "sections": {
     "gift_guide_banner": {
       "type": "gift-guide-banner",
-      "settings": {},
-      "blocks": {
-        "image_1": { "type": "image", "settings": {} },
-        "image_2": { "type": "image", "settings": {} },
-        "image_3": { "type": "image", "settings": {} },
-        "image_4": { "type": "image", "settings": {} },
-        "image_5": { "type": "image", "settings": {} },
-        "image_6": { "type": "image", "settings": {} },
-        "image_7": { "type": "image", "settings": {} },
-        "image_8": { "type": "image", "settings": {} }
-      },
-      "block_order": ["image_1", "image_2", "image_3", "image_4", "image_5", "image_6", "image_7", "image_8"]
+      "settings": {}
     },
     "gift_guide_grid": {
       "type": "gift-guide-grid",
