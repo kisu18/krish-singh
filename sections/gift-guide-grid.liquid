@@ -1,0 +1,86 @@
+<section class="gift-grid" id="gift-guide-grid" data-gift-grid="{{ section.id }}">
+  <h2>{{ section.settings.heading }}</h2>
+  <div class="gift-grid__items">
+    {% for block in section.blocks %}
+      {% assign product = block.settings.product %}
+      {% if product != blank %}
+        <article class="gift-grid__card" {{ block.shopify_attributes }} data-product-title="{{ product.title | escape }}" data-product-price="{{ product.price | money | escape }}" data-product-description="{{ product.description | strip_html | escape }}" data-product-image="{{ product.featured_image | image_url: width: 900 }}" data-product-variants="{{ product.variants | json | escape }}" data-auto-product="{{ section.settings.auto_add_product | json | escape }}">
+          {% if product.featured_image != blank %}
+            {{ product.featured_image | image_url: width: 900 | image_tag: loading: 'lazy', alt: product.title }}
+          {% else %}
+            {{ 'product-1' | placeholder_svg_tag }}
+          {% endif %}
+          <button class="gift-grid__plus" type="button" aria-label="View {{ product.title }}">+</button>
+          <div class="gift-grid__info"><h3>{{ product.title }}</h3><p>{{ product.price | money }}</p></div>
+        </article>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  <div class="gift-grid__modal" data-modal aria-hidden="true">
+    <button class="gift-grid__backdrop" type="button" data-close-modal aria-label="Close product dialog"></button>
+    <div class="gift-grid__panel" role="dialog" aria-modal="true" aria-labelledby="gift-grid-title-{{ section.id }}">
+      <button class="gift-grid__close" type="button" data-close-modal aria-label="Close product dialog">x</button>
+      <div class="gift-grid__modal-image"><img data-modal-image alt=""></div>
+      <div class="gift-grid__modal-content">
+        <h2 id="gift-grid-title-{{ section.id }}" data-modal-title></h2>
+        <p data-modal-price></p>
+        <div data-modal-description></div>
+        <label data-color-field>Color<select data-color-select></select></label>
+        <label data-size-field>Size<select data-size-select></select></label>
+        <button class="gift-grid__add" type="button" data-add-to-cart>{{ section.settings.add_button }} <span>-></span></button>
+        <p class="gift-grid__status" data-status role="status"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .gift-grid{max-width:1250px;margin:0 auto;padding:36px 18px 60px;background:#efefeb;color:#111;font-family:var(--font-body-family,sans-serif)}.gift-grid h2{font-family:var(--font-heading-family,serif);font-size:clamp(2rem,2.2vw,2.9rem);letter-spacing:-.05em;margin:0 0 26px}.gift-grid__items{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.gift-grid__card{position:relative;min-height:330px;border:1px solid #1113;overflow:hidden;cursor:pointer}.gift-grid__card>img,.gift-grid__card>svg{width:100%;height:290px;object-fit:cover}.gift-grid__plus{position:absolute;top:14px;right:14px;width:28px;height:28px;border:1px solid #111;border-radius:50%;background:#fffc;font-size:1.35rem;line-height:1;cursor:pointer}.gift-grid__info{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;background:#f5f3ee}.gift-grid__info h3,.gift-grid__info p{margin:0;font-size:.9rem}.gift-grid__modal{position:fixed;inset:0;display:grid;place-items:end center;opacity:0;visibility:hidden;pointer-events:none;z-index:30}.gift-grid__modal.is-open{opacity:1;visibility:visible;pointer-events:auto}.gift-grid__backdrop{position:absolute;inset:0;border:0;background:#1112}.gift-grid__panel{position:relative;width:min(620px,calc(100vw - 28px));display:grid;grid-template-columns:200px 1fr;gap:18px;background:#f8f6f0;border:3px solid #111;border-bottom:0;padding:18px 16px 0;z-index:1}.gift-grid__close{position:absolute;top:10px;right:10px;border:0;background:none;font-size:1.8rem;cursor:pointer}.gift-grid__modal-image{min-height:180px;margin-top:32px;border:2px solid #111;overflow:hidden}.gift-grid__modal-image img{width:100%;height:100%;object-fit:cover}.gift-grid__modal-content{padding:26px 8px 18px 0}.gift-grid__modal-content h2{margin:0;font-size:2rem}.gift-grid__modal-content label{display:block;font-size:.8rem;margin-top:12px}.gift-grid__modal-content select{display:block;width:100%;margin-top:7px;padding:12px;background:#f7f3ed;border:2px solid #111}.gift-grid__add{width:100%;margin-top:20px;height:58px;border:0;background:#111;color:#fff;font-weight:700;letter-spacing:.08em;cursor:pointer}.gift-grid__add span{font-size:1.4rem}.gift-grid__status{font-size:.8rem}.gift-grid__status:empty{display:none}@media(max-width:900px){.gift-grid__items{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.gift-grid{padding:30px 12px 40px}.gift-grid__items{grid-template-columns:1fr}.gift-grid__panel{grid-template-columns:1fr;padding-bottom:10px}.gift-grid__modal-image{margin-top:32px}}
+</style>
+
+<script>
+  (() => {
+    const root = document.querySelector('[data-gift-grid="{{ section.id }}"]');
+    if (!root || root.dataset.ready) return;
+    root.dataset.ready = 'true';
+    const modal = root.querySelector('[data-modal]');
+    const image = root.querySelector('[data-modal-image]');
+    const title = root.querySelector('[data-modal-title]');
+    const price = root.querySelector('[data-modal-price]');
+    const description = root.querySelector('[data-modal-description]');
+    const colorSelect = root.querySelector('[data-color-select]');
+    const sizeSelect = root.querySelector('[data-size-select]');
+    const status = root.querySelector('[data-status]');
+    let card;
+    let variants = [];
+    let autoProduct = null;
+    const values = (index) => [...new Set(variants.map((variant) => variant.options[index]).filter(Boolean))];
+    const fill = (select, field, options) => { field.hidden = options.length === 0; select.innerHTML = options.map((option) => `<option>${option}</option>`).join(''); };
+    const currentVariant = () => variants.find((variant) => (!colorSelect.value || variant.options.includes(colorSelect.value)) && (!sizeSelect.value || variant.options.includes(sizeSelect.value))) || variants[0];
+    function openProduct(nextCard) { card = nextCard; variants = JSON.parse(card.dataset.productVariants || '[]'); autoProduct = card.dataset.autoProduct ? JSON.parse(card.dataset.autoProduct) : null; title.textContent = card.dataset.productTitle; price.textContent = card.dataset.productPrice; description.textContent = card.dataset.productDescription; image.src = card.dataset.productImage; image.alt = card.dataset.productTitle; fill(colorSelect, root.querySelector('[data-color-field]'), values(0)); fill(sizeSelect, root.querySelector('[data-size-field]'), values(1)); modal.classList.add('is-open'); modal.setAttribute('aria-hidden', 'false'); }
+    function close() { modal.classList.remove('is-open'); modal.setAttribute('aria-hidden', 'true'); }
+    async function addToCart() { const selected = currentVariant(); if (!selected) return; const items = [{ id: selected.id, quantity: 1 }]; const autoVariant = autoProduct && (autoProduct.variants || []).find((variant) => variant.options.includes('Black') && (variant.options.includes('Medium') || variant.options.includes('M'))); if (colorSelect.value.toLowerCase() === 'black' && ['medium','m'].includes(sizeSelect.value.toLowerCase()) && autoVariant) items.push({ id: autoVariant.id, quantity: 1 }); status.textContent = 'Adding to cart...'; try { const response = await fetch(`${window.Shopify.routes.root}cart/add.js`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ items }) }); if (!response.ok) throw new Error('Cart request failed'); status.textContent = 'Added to cart'; document.dispatchEvent(new CustomEvent('cart:refresh')); setTimeout(close, 500); } catch (error) { status.textContent = 'Unable to add this product. Please try again.'; } }
+    root.querySelectorAll('.gift-grid__card').forEach((item) => item.addEventListener('click', (event) => { if (event.target.closest('.gift-grid__plus')) openProduct(item); }));
+    root.querySelectorAll('[data-close-modal]').forEach((item) => item.addEventListener('click', close));
+    root.querySelector('[data-add-to-cart]').addEventListener('click', addToCart);
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && modal.classList.contains('is-open')) close(); });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Gift guide grid",
+  "tag": "section",
+  "class": "section-gift-guide-grid",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Tisso vison in the wild" },
+    { "type": "text", "id": "add_button", "label": "Add button", "default": "ADD TO CART" },
+    { "type": "product", "id": "auto_add_product", "label": "Soft Winter Jacket auto-add product" }
+  ],
+  "blocks": [
+    { "type": "product", "name": "Product", "limit": 6, "settings": [{ "type": "product", "id": "product", "label": "Product" }] }
+  ],
+  "presets": [{ "name": "Gift guide grid", "blocks": [{ "type": "product" }, { "type": "product" }, { "type": "product" }, { "type": "product" }, { "type": "product" }, { "type": "product" }] }]
+}
+{% endschema %}
