@@ -1,22 +1,84 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
     "gift_guide_banner": {
       "type": "gift-guide-banner",
-      "settings": {}
+      "settings": {
+        "brand_name": "TISSO VISON",
+        "header_text": "Find the ideal gift for loved ones.",
+        "header_button": "CHOOSE GIFT",
+        "hero_image": "shopify://shop_images/Frame.svg",
+        "heading": "The Gift Guide",
+        "description": "<p>Discover joy: Your ultimate holiday gift destination. Explore our curated selection and find the perfect gifts to delight your loved ones this holiday season.</p>",
+        "hero_button": "SHOP NOW",
+        "announcement_text": "SUSTAINABLE, ETHICALLY MADE CLOTHES IN SIZES XXS TO 6XL"
+      }
     },
     "gift_guide_grid": {
       "type": "gift-guide-grid",
-      "settings": {},
       "blocks": {
-        "product_1": { "type": "product", "settings": {} },
-        "product_2": { "type": "product", "settings": {} },
-        "product_3": { "type": "product", "settings": {} },
-        "product_4": { "type": "product", "settings": {} },
-        "product_5": { "type": "product", "settings": {} },
-        "product_6": { "type": "product", "settings": {} }
+        "product_1": {
+          "type": "product",
+          "settings": {
+            "product": "black-leather-bag"
+          }
+        },
+        "product_2": {
+          "type": "product",
+          "settings": {
+            "product": "blue-silk-tuxedo"
+          }
+        },
+        "product_3": {
+          "type": "product",
+          "settings": {
+            "product": "chequered-red-shirt"
+          }
+        },
+        "product_4": {
+          "type": "product",
+          "settings": {
+            "product": "classic-leather-jacket"
+          }
+        },
+        "product_5": {
+          "type": "product",
+          "settings": {
+            "product": "classic-varsity-top"
+          }
+        },
+        "product_6": {
+          "type": "product",
+          "settings": {
+            "product": "dark-denim-top"
+          }
+        }
       },
-      "block_order": ["product_1", "product_2", "product_3", "product_4", "product_5", "product_6"]
+      "block_order": [
+        "product_1",
+        "product_2",
+        "product_3",
+        "product_4",
+        "product_5",
+        "product_6"
+      ],
+      "settings": {
+        "heading": "Tisso vison in the wild",
+        "add_button": "ADD TO CART",
+        "auto_add_product": "dark-winter-jacket"
+      }
     }
   },
-  "order": ["gift_guide_banner", "gift_guide_grid"]
+  "order": [
+    "gift_guide_banner",
+    "gift_guide_grid"
+  ]
 }
